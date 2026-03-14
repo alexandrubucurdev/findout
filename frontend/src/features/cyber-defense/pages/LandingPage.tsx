@@ -1,10 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Activity } from "lucide-react";
+import { Search } from "lucide-react";
 import { motion } from "framer-motion";
 import RecentThreats from "../components/RecentThreats";
+
+function StarField() {
+  const stars = useMemo(
+    () =>
+      Array.from({ length: 80 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 2 + 1,
+        duration: Math.random() * 3 + 3,
+        delay: Math.random() * 5,
+        color:
+          Math.random() > 0.6
+            ? "#22d3ee"
+            : Math.random() > 0.5
+            ? "#4ade80"
+            : "#ffffff",
+      })),
+    []
+  );
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0">
+      {stars.map((star) => (
+        <motion.div
+          key={star.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: star.size,
+            height: star.size,
+            backgroundColor: star.color,
+            boxShadow: `0 0 ${star.size * 2}px ${star.color}`,
+          }}
+          animate={{ opacity: [0, 1, 0] }}
+          transition={{
+            duration: star.duration,
+            delay: star.delay,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function LandingPage() {
   const router = useRouter();
@@ -13,7 +60,6 @@ export default function LandingPage() {
 
   const handleScan = () => {
     if (searchInput.trim()) {
-      // Trimitem URL-ul ca query param către loading
       router.push(`/loading?url=${encodeURIComponent(searchInput.trim())}`);
     }
   };
@@ -30,8 +76,10 @@ export default function LandingPage() {
         }}
       />
 
+      <StarField />
+
       <div className="relative z-10">
-        <header className="border-b border-slate-800 px-8 py-4">
+        <header className="border-b border-slate-800 px-8 py-4 bg-slate-900/70">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -39,14 +87,14 @@ export default function LandingPage() {
                 <img
                   src="/assets/logo-bun-1.png"
                   alt="Find Out"
-                  className="h-18 w-auto relative"
+                  className="h-14 w-auto relative"
                 />
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-green-500 font-mono text-sm">
-                ce scriem aici? 
+              <div className="w-2 h-2 bg-slate-500 rounded-full animate-pulse"></div>
+              <span className="text-slate-400 font-mono text-sm">
+                Advanced Disinformation Detection
               </span>
             </div>
           </div>
@@ -61,10 +109,14 @@ export default function LandingPage() {
               className="mb-8"
             >
               <h2
-                className="text-5xl mb-4 text-center tracking-wider"
-                style={{ fontFamily: "Space Mono, monospace", fontWeight: 700 }}
+                className="text-5xl mb-4 text-center tracking-widest uppercase"
+                style={{
+                  fontFamily: "Inter, system-ui, sans-serif",
+                  fontWeight: 800,
+                  letterSpacing: "0.15em",
+                }}
               >
-                TACTICAL NEWS ANALYSIS
+                UNMASK THE NARRATIVE
               </h2>
 
               <div className="relative flex gap-4">

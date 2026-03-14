@@ -23,32 +23,38 @@ export default function LoadingState() {
     }
 
     const runScan = async () => {
-      try {
-        const response = await fetch("http://localhost:8000/scan", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url }),
-        });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-        if (!response.ok) {
-          throw new Error(`Server error: ${response.status}`);
-        }
+  try {
+    const response = await fetch("http://localhost:8000/scan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+      signal: controller.signal,
+    });
 
-        const data = await response.json();
+    clearTimeout(timeoutId);
 
-        // Salvăm rezultatul în localStorage pentru Dashboard
-        localStorage.setItem("scanResult", JSON.stringify(data));
-        localStorage.setItem("scannedUrl", url);
+    if (!response.ok) throw new Error(`Server error: ${response.status}`);
 
-        router.push("/dashboard");
-      } catch (error) {
-        console.error("Eroare la scanare:", error);
-        // Chiar dacă e eroare, mergem la dashboard cu date goale
-        localStorage.setItem("scanResult", JSON.stringify(null));
-        localStorage.setItem("scannedUrl", url || "");
-        router.push("/dashboard");
-      }
-    };
+    const data = await response.json();
+    localStorage.setItem("scanResult", JSON.stringify(data));
+    localStorage.setItem("scannedUrl", url);
+    router.push("/dashboard");
+
+  } catch (error: unknown) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      console.warn("Timeout — mergem la dashboard.");
+    } else {
+      console.error("Eroare la scanare:", error);
+    }
+    localStorage.setItem("scanResult", JSON.stringify(null));
+    localStorage.setItem("scannedUrl", url || "");
+    router.push("/dashboard");
+  }
+};
 
     // Așteptăm puțin ca animația să fie vizibilă, apoi facem request-ul
     const timer = setTimeout(() => {

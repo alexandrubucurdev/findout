@@ -48,7 +48,7 @@ export default function SitrepPanel() {
       <div className="bg-slate-950 border-b border-slate-700 px-5 py-4">
         <div className="flex items-center gap-3">
           <FileText className="w-5 h-5 text-cyan-400" />
-          <h3 className="font-mono tracking-wider text-lg">SITREP</h3>
+          <h3 className="font-mono tracking-wider text-lg">PATTERN DETECTION</h3>
         </div>
         <p className="text-xs text-slate-500 font-mono mt-1">SITUATION REPORT</p>
       </div>
@@ -59,10 +59,10 @@ export default function SitrepPanel() {
           <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
           <div>
             <h4 className="font-mono text-sm text-slate-300 mb-1">
-              Tehnici de propagandă detectate:
+              COGNITIVE MANIPULATION PATTERNS:
             </h4>
             <p className="text-xs text-slate-500">
-              {techniques.length} pattern-uri identificate în analiza conținutului
+              {techniques.length} identified patterns
             </p>
           </div>
         </div>
