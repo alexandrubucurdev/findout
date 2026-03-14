@@ -13,13 +13,13 @@ export default function LandingPage() {
 
   const handleScan = () => {
     if (searchInput.trim()) {
-      router.push("/loading");
+      // Trimitem URL-ul ca query param către loading
+      router.push(`/loading?url=${encodeURIComponent(searchInput.trim())}`);
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col relative">
-      {/* Background Image with Opacity */}
       <div
         className="fixed inset-0 opacity-20 pointer-events-none"
         style={{
@@ -30,9 +30,7 @@ export default function LandingPage() {
         }}
       />
 
-      {/* Content */}
       <div className="relative z-10">
-        {/* Header */}
         <header className="border-b border-slate-800 px-8 py-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -48,16 +46,14 @@ export default function LandingPage() {
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-green-500 font-mono text-sm">
-                STATUS: ONLINE
+                ce scriem aici? 
               </span>
             </div>
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="flex-1 flex flex-col items-center justify-center px-8 py-6 min-h-[calc(100vh-80px)]">
           <div className="w-full max-w-4xl">
-            {/* Hero Search Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -71,7 +67,6 @@ export default function LandingPage() {
                 TACTICAL NEWS ANALYSIS
               </h2>
 
-              {/* Search Bar with Glow Effect */}
               <div className="relative flex gap-4">
                 <div className="flex-1 relative">
                   <div
@@ -99,14 +94,13 @@ export default function LandingPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleScan}
-                  className="px-10 py-5 bg-gradient-to-r from-blue-800 to-purple-800 rounded-lg font-mono text-lg tracking-widest hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg shadow-blue-500/30"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-800 to-cyan-500 rounded-lg font-mono text-lg tracking-widest hover:from-slate-700 hover:to-slate-500 transition-all duration-300 shadow-lg shadow-blue-500/30"
                 >
                   SCAN
                 </motion.button>
               </div>
             </motion.div>
 
-            {/* Recent Threats Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

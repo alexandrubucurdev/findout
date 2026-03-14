@@ -15,9 +15,9 @@ export default function ToxicityMeter() {
           </div>
           <div>
             <h2
-              className="text-3xl tracking-wider"
-              style={{ fontFamily: "Space Mono, monospace", fontWeight: 700 }}
-            >
+  className="text-3xl tracking-wider"
+  style={{ fontFamily: "Inter, sans-serif", fontWeight: 800 }}
+>
               🔴 PERICOL: Manipulare Emoțională
             </h2>
             <p className="text-slate-400 font-mono text-sm mt-1">

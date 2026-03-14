@@ -27,7 +27,7 @@ export default function ChatPanel() {
     if (!inputValue.trim()) return;
 
     const newMessage: Message = {
-      id: messages.length + 1,
+      id: Date.now(),
       text: inputValue,
       sender: "user",
       timestamp: new Date().toLocaleTimeString("ro-RO", {
@@ -42,7 +42,7 @@ export default function ChatPanel() {
     // Simulate AI response
     setTimeout(() => {
       const aiResponse: Message = {
-        id: messages.length + 2,
+        id: Date.now() +1 ,
         text: "Am analizat întrebarea ta. Această știre folosește mai multe tehnici de manipulare, printre care și whataboutism pentru a devia atenția de la subiectul principal.",
         sender: "ai",
         timestamp: new Date().toLocaleTimeString("ro-RO", {
@@ -61,7 +61,7 @@ export default function ChatPanel() {
         <div className="flex items-center gap-3">
           <MessageSquare className="w-5 h-5 text-cyan-400" />
           <h3 className="font-mono tracking-wider text-lg">
-            CITIZEN&apos;S SHIELD
+            CHAT BOX
           </h3>
         </div>
         <p className="text-xs text-slate-500 font-mono mt-1">
@@ -70,8 +70,8 @@ export default function ChatPanel() {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
-        {messages.map((message) => (
+<div className="h-[300px] overflow-y-auto p-5 space-y-4"> 
+      {messages.map((message) => (
           <div
             key={message.id}
             className={`flex gap-3 ${

@@ -1,7 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
-
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -73,6 +72,17 @@
     @apply bg-background text-foreground;
     font-family: "Inter", sans-serif;
   }
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #020617; /* slate-950 */
+}
+::-webkit-scrollbar-thumb {
+  background: #334155; /* slate-700 */
+  border-radius: 3px;
+}
 
   h1,
   h2,

@@ -1,6 +1,7 @@
 "use client";
 
-import { Activity, ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import ToxicityMeter from "../components/ToxicityMeter";
@@ -8,12 +9,43 @@ import SitrepPanel from "../components/SitrepPanel";
 import NetworkGraph from "../components/NetworkGraph";
 import ChatPanel from "../components/ChatPanel";
 
+interface NewsNode {
+  domain: string;
+  data_publicarii: string;
+  pacient_zero: boolean;
+  sursa: string;
+  link: string;
+  limba: string;
+}
+
+interface ScanResult {
+  url: string;
+  title: string;
+  news_nodes: NewsNode[];
+  ai_verdict: Record<string, unknown>;
+  veridicitate: string;
+  ai_summary: string;
+  fact_checks: unknown[];
+  timestamp: string;
+}
+
 export default function Dashboard() {
   const router = useRouter();
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+
+  useEffect(() => {
+    const raw = localStorage.getItem("scanResult");
+    if (raw) {
+      try {
+        setScanResult(JSON.parse(raw));
+      } catch {
+        console.error("Eroare la parsarea datelor din localStorage");
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col relative">
-      {/* Background Image with Opacity */}
       <div
         className="fixed inset-0 opacity-20 pointer-events-none"
         style={{
@@ -24,9 +56,7 @@ export default function Dashboard() {
         }}
       />
 
-      {/* Content */}
       <div className="relative z-10">
-        {/* Header */}
         <header className="border-b border-slate-800 px-8 py-4">
           <div className="max-w-[1800px] mx-auto flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -66,17 +96,13 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Main Dashboard */}
         <main className="flex-1 px-8 py-6 overflow-auto">
           <div className="max-w-[1800px] mx-auto space-y-6">
-            {/* Toxicity Meter - Centered, 20% smaller */}
             <div className="max-w-[80%] mx-auto">
               <ToxicityMeter />
             </div>
 
-            {/* Two-Panel Layout - SITREP and Network Graph */}
             <div className="grid grid-cols-2 gap-6 min-h-[600px] mx-auto max-w-[80%]">
-              {/* Left Panel - SITREP */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -85,17 +111,16 @@ export default function Dashboard() {
                 <SitrepPanel />
               </motion.div>
 
-              {/* Right Panel - Network Graph */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
-                <NetworkGraph />
+                {/* Pasăm news_nodes din scanResult */}
+                <NetworkGraph newsNodes={scanResult?.news_nodes ?? []} />
               </motion.div>
             </div>
 
-            {/* Citizen's Shield - Centered below */}
             <div className="flex justify-center">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

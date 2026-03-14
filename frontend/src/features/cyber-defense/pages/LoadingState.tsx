@@ -1,20 +1,62 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Radar, Lock, Shield, Cpu } from "lucide-react";
 
 export default function LoadingState() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const hasCalled = useRef(false);
 
   useEffect(() => {
+    if (hasCalled.current) return;
+    hasCalled.current = true;
+
+    const url = searchParams.get("url");
+
+    if (!url) {
+      // Dacă nu avem URL, mergem înapoi la home
+      router.push("/");
+      return;
+    }
+
+    const runScan = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/scan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Salvăm rezultatul în localStorage pentru Dashboard
+        localStorage.setItem("scanResult", JSON.stringify(data));
+        localStorage.setItem("scannedUrl", url);
+
+        router.push("/dashboard");
+      } catch (error) {
+        console.error("Eroare la scanare:", error);
+        // Chiar dacă e eroare, mergem la dashboard cu date goale
+        localStorage.setItem("scanResult", JSON.stringify(null));
+        localStorage.setItem("scannedUrl", url || "");
+        router.push("/dashboard");
+      }
+    };
+
+    // Așteptăm puțin ca animația să fie vizibilă, apoi facem request-ul
     const timer = setTimeout(() => {
-      router.push("/dashboard");
-    }, 3500);
+      runScan();
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [router, searchParams]);
 
   const scanSteps = [
     { icon: Lock, label: "Verifying sources..." },
@@ -25,7 +67,6 @@ export default function LoadingState() {
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Background Image with Opacity */}
       <div
         className="fixed inset-0 opacity-25 pointer-events-none"
         style={{
@@ -36,7 +77,6 @@ export default function LoadingState() {
         }}
       />
 
-      {/* Animated Background Grid */}
       <div className="absolute inset-0 opacity-20">
         <div
           className="absolute inset-0"
@@ -50,9 +90,7 @@ export default function LoadingState() {
         ></div>
       </div>
 
-      {/* Central Content */}
       <div className="relative z-10 text-center">
-        {/* Spinning Radar Circle */}
         <motion.div
           className="w-32 h-32 mx-auto mb-8 relative"
           animate={{ rotate: 360 }}
@@ -66,7 +104,6 @@ export default function LoadingState() {
           </div>
         </motion.div>
 
-        {/* Main Text */}
         <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -75,7 +112,6 @@ export default function LoadingState() {
           Running AI analysis...
         </motion.h1>
 
-        {/* Loading Steps */}
         <div className="space-y-3 mt-12 min-w-[400px]">
           {scanSteps.map((step, index) => (
             <motion.div
@@ -99,7 +135,6 @@ export default function LoadingState() {
           ))}
         </div>
 
-        {/* Progress Percentage */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
