@@ -1,174 +1,369 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { Share2 } from "lucide-react";
+import { Clock, Crosshair } from "lucide-react";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
-  ssr: false,
+     ssr: false,
 });
 
-// ... (interfețele și FALLBACK_DATA rămân la fel)
-interface NewsNode { domain: string; data_publicarii: string; pacient_zero: boolean; sursa: string; link: string; limba: string; }
-interface GraphNode { id: string; name: string; type: "source" | "domain"; val: number; x?: number; y?: number; }
-interface GraphLink { source: string; target: string; }
-interface NetworkGraphProps { newsNodes: NewsNode[]; }
-
-const FALLBACK_DATA: { nodes: GraphNode[]; links: GraphLink[] } = {
-  nodes: [
-    { id: "source", name: "GDELT Source\n(Origin Point)", type: "source", val: 40 },
-    { id: "domain1", name: "actualitate-ro.com", type: "domain", val: 20 },
-    { id: "domain2", name: "breaking-news.ro", type: "domain", val: 20 },
-    { id: "domain3", name: "romania-24.ro", type: "domain", val: 20 },
-    { id: "domain4", name: "stiri-online.ro", type: "domain", val: 20 },
-  ],
-  links: [
-    { source: "source", target: "domain1" },
-    { source: "source", target: "domain2" },
-    { source: "source", target: "domain3" },
-    { source: "source", target: "domain4" },
-  ],
-};
-
-function buildGraphData(newsNodes: NewsNode[]): { nodes: GraphNode[]; links: GraphLink[] } {
-  if (!newsNodes || newsNodes.length === 0) return FALLBACK_DATA;
-  const pacientZero = newsNodes.find((n) => n.pacient_zero);
-  const restNodes = newsNodes.filter((n) => !n.pacient_zero);
-  const sourceId = "source";
-  const sourceName = pacientZero ? `${pacientZero.sursa}\n(Origin Point)` : "GDELT Source\n(Origin Point)";
-  const nodes: GraphNode[] = [
-    { id: sourceId, name: sourceName, type: "source", val: 40 },
-    ...restNodes.map((n, i) => ({ id: `domain${i}`, name: n.domain, type: "domain" as const, val: 20 })),
-  ];
-  const links: GraphLink[] = restNodes.map((_, i) => ({ source: sourceId, target: `domain${i}` }));
-  return { nodes, links };
+interface NewsNode {
+     domain: string;
+     data_publicarii: string;
+     pacient_zero: boolean;
+     sursa: string;
+     link: string;
+     limba: string;
 }
 
-export default function NetworkGraph({ newsNodes }: NetworkGraphProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const fgRef = useRef<any>(null);
-  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
-  const [isMounted, setIsMounted] = useState(false); // Soluție pentru Hydration Error
+interface GraphNode {
+     id: string;
+     name: string;
+     type: "source" | "domain";
+     val: number;
+     x?: number;
+     y?: number;
+     link?: string;
+}
 
-  useEffect(() => {
-    setIsMounted(true);
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        setDimensions({
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight,
-        });
-      }
-    };
+interface GraphLink {
+     source: string | GraphNode;
+     target: string | GraphNode;
+     delayHours: number;
+}
 
-    updateDimensions();
-    window.addEventListener("resize", updateDimensions);
-    
-    // Forțăm distanțarea imediat ce componenta se montează sau datele se schimbă
-    if (fgRef.current) {
-      fgRef.current.d3Force("charge").strength(-1000); // Respingere agresivă
-      fgRef.current.d3Force("link").distance(250);    // Distanță mare față de centru
-      fgRef.current.d3ReheatSimulation();             // Reîncălzește fizica
-    }
+interface NetworkGraphProps {
+     newsNodes: NewsNode[];
+     toxicityScore?: number;
+}
 
-    return () => window.removeEventListener("resize", updateDimensions);
-  }, [newsNodes, isMounted]); 
+const drawPill = (
+     ctx: CanvasRenderingContext2D,
+     text: string,
+     x: number,
+     y: number,
+     color: string,
+     isSource: boolean,
+) => {
+     // Scalăm fontul pe baza device-ului aproximativ, deși canvas-ul nu "știe" tailwind.
+     // Pentru a păstra lizibilitatea lăsăm o mărime vizibilă:
+     const fontSize = isSource ? 14 : 11;
+     ctx.font = `600 ${fontSize}px Inter, system-ui, sans-serif`;
 
-  const graphData = buildGraphData(newsNodes);
+     const textWidth = ctx.measureText(text).width;
+     const paddingX = 10;
+     const paddingY = 6;
+     const height = fontSize + paddingY * 2;
+     const width = textWidth + paddingX * 2;
+     const radius = 6;
 
-  // Dacă nu suntem pe client, nu randăm componenta (evităm mismatch-ul server-client)
-  if (!isMounted) {
-    return (
-      <div className="h-full bg-slate-900 border border-slate-700 rounded-lg flex items-center justify-center font-mono text-slate-500">
-        INITIALIZING GRAPH SYSTEM...
-      </div>
-    );
-  }
+     ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+     ctx.beginPath();
+     ctx.roundRect(x - width / 2, y - height / 2, width, height, radius);
+     ctx.fill();
 
-  return (
-    <div className="h-full bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-lg overflow-hidden flex flex-col">
-      <div className="bg-slate-950 border-b border-slate-700 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <Share2 className="w-5 h-5 text-cyan-400" />
-          <h3 className="font-mono tracking-wider text-lg uppercase text-slate-100">Narrative Propagation Map</h3>
-        </div>
-        <p className="text-xs text-slate-500 font-mono mt-1 uppercase tracking-tight">
-          Visualizing cross-domain diffusion and tactical influence networks
-        </p>
-      </div>
+     ctx.strokeStyle = color;
+     ctx.lineWidth = 1.5;
+     ctx.stroke();
 
-      <div ref={containerRef} className="flex-1 relative bg-slate-950">
-        <ForceGraph2D
-          ref={fgRef}
-          graphData={graphData}
-          width={dimensions.width}
-          height={dimensions.height}
-          backgroundColor="#020617"
-          nodeRelSize={6}
-          minZoom={0.8}
-          maxZoom={4}
-          
-          nodeCanvasObject={(node, ctx, globalScale) => {
-            const label = node.name;
-            const fontSize = 11 / globalScale;
-            const nodeX = node.x ?? 0;
-            const nodeY = node.y ?? 0;
-            const radius = node.val / 2;
-            const nodeIdNum = parseInt(String(node.id).replace(/\D/g, "") || "0", 10);
+     ctx.textAlign = "center";
+     ctx.textBaseline = "middle";
+     ctx.fillStyle = isSource ? "#ffffff" : "#f1f5f9";
+     ctx.fillText(text, x, y);
+};
 
-            ctx.font = `${fontSize}px monospace`;
+export default function NetworkGraph({
+     newsNodes,
+     toxicityScore,
+}: NetworkGraphProps) {
+     const containerRef = useRef<HTMLDivElement>(null);
+     const fgRef = useRef<any>(null);
+     const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+     const [isMounted, setIsMounted] = useState(false);
+     const [hoverNode, setHoverNode] = useState<string | null>(null);
 
-            if (node.type === "source") {
-              ctx.beginPath();
-              ctx.arc(nodeX, nodeY, radius + 2, 0, 2 * Math.PI);
-              ctx.fillStyle = "#ef4444";
-              ctx.fill();
-              ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-              ctx.lineWidth = 1 / globalScale;
-              ctx.stroke();
-            } else {
-              const color = nodeIdNum % 2 === 0 ? "#dc2626" : "#991b1b";
-              const glow = nodeIdNum % 2 === 0 ? "rgba(220, 38, 38, 0.2)" : "rgba(153, 27, 27, 0.15)";
-              ctx.beginPath();
-              ctx.arc(nodeX, nodeY, radius + 4, 0, 2 * Math.PI);
-              ctx.fillStyle = glow;
-              ctx.fill();
-              ctx.beginPath();
-              ctx.arc(nodeX, nodeY, radius, 0, 2 * Math.PI);
-              ctx.fillStyle = color;
-              ctx.fill();
-            }
+     const buildGraphData = useCallback(() => {
+          if (!newsNodes || newsNodes.length === 0)
+               return { nodes: [], links: [] };
 
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = node.type === "source" ? "#fff" : "#94a3b8";
-            const lines = label.split("\n");
-            lines.forEach((line: string, i: number) => {
-              ctx.fillText(line, nodeX, nodeY + radius + 12 + i * (fontSize + 2));
-            });
-          }}
-          
-          linkColor={() => "rgba(148, 163, 184, 0.1)"}
-          linkWidth={1.5}
-          linkDirectionalParticles={2}
-          linkDirectionalParticleSpeed={0.004}
-          linkDirectionalParticleColor={() => "#ef4444"}
-          cooldownTicks={100}
-        />
+          const pacientZero =
+               newsNodes.find((n) => n.pacient_zero) || newsNodes[0];
+          const restNodes = newsNodes.filter((n) => !n.pacient_zero);
+          const sourceName = `${pacientZero.sursa || pacientZero.domain}`;
 
-        <div className="absolute bottom-4 left-4 bg-slate-900/90 border border-slate-700 rounded-lg p-3 backdrop-blur-md">
-          <div className="space-y-2 text-[10px] font-mono uppercase tracking-widest">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span className="text-slate-200">Origin Point</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-800 rounded-full"></div>
-              <span className="text-slate-400">Infected Domains</span>
-            </div>
+          const nodes: GraphNode[] = [
+               {
+                    id: "source",
+                    name: sourceName,
+                    type: "source",
+                    val: 10,
+                    link: pacientZero?.link,
+               },
+               ...restNodes.map((n, i) => ({
+                    id: `domain${i}`,
+                    name: n.sursa || n.domain,
+                    type: "domain" as const,
+                    val: 4,
+                    link: n.link,
+               })),
+          ];
+
+          const links: GraphLink[] = restNodes.map((_, i) => ({
+               source: "source",
+               target: `domain${i}`,
+               delayHours: Math.floor(Math.random() * 48) + 1,
+          }));
+
+          return { nodes, links };
+     }, [newsNodes]);
+
+     const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+     const isThreat = (toxicityScore ?? 0) >= 50;
+
+     const theme = {
+          source: isThreat ? "#ef4444" : "#06b6d4",
+          domain: isThreat ? "#f87171" : "#38bdf8",
+          link: isThreat ? "rgba(239, 68, 68, 0.6)" : "rgba(6, 182, 212, 0.6)",
+          dimmed: "rgba(51, 65, 85, 0.2)",
+     };
+
+     useEffect(() => {
+          setIsMounted(true);
+          setGraphData(buildGraphData() as any);
+
+          const updateDimensions = () => {
+               if (containerRef.current) {
+                    setDimensions({
+                         width: containerRef.current.offsetWidth,
+                         height: containerRef.current.offsetHeight,
+                    });
+               }
+          };
+
+          updateDimensions();
+          window.addEventListener("resize", updateDimensions);
+          return () => window.removeEventListener("resize", updateDimensions);
+     }, [buildGraphData]);
+
+     if (!isMounted) return null;
+
+     return (
+          <div className="h-full w-full bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-lg overflow-hidden flex flex-col relative shadow-lg">
+               {/* UI Overlay */}
+               <div className="absolute top-0 left-0 w-full z-10 p-3 sm:p-4 pointer-events-none">
+                    <div className="flex items-center gap-2 sm:gap-3 bg-slate-900/40 backdrop-blur-sm w-fit p-2 rounded-lg border border-slate-800/50">
+                         <div
+                              className={`p-1.5 sm:p-2 rounded-lg ${isThreat ? "bg-red-500/10" : "bg-cyan-500/10"}`}
+                         >
+                              <Crosshair
+                                   className={`w-4 h-4 sm:w-5 sm:h-5 ${isThreat ? "text-red-500" : "text-cyan-400"}`}
+                              />
+                         </div>
+                         <div>
+                              <h3 className="font-mono tracking-widest text-[10px] sm:text-xs font-bold uppercase text-slate-200">
+                                   {isThreat
+                                        ? "Vector Propagare"
+                                        : "Difuzie Rețea"}
+                              </h3>
+                              <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5">
+                                   <div
+                                        className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-pulse ${isThreat ? "bg-red-500" : "bg-cyan-500"}`}
+                                   />
+                                   <p className="text-[8px] sm:text-[9px] text-slate-400 font-mono tracking-wider uppercase">
+                                        Monitorizare activă
+                                   </p>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+
+               <div
+                    ref={containerRef}
+                    className="flex-1 w-full h-full cursor-crosshair min-h-[350px]"
+               >
+                    <ForceGraph2D
+                         ref={
+                              ((r: any) => {
+                                   fgRef.current = r;
+                                   if (r && !(r as any).forcesConfigured) {
+                                        r.d3Force("charge")?.strength(-1200);
+                                        (r as any).forcesConfigured = true;
+                                   }
+                              }) as any
+                         }
+                         graphData={graphData}
+                         width={dimensions.width}
+                         height={dimensions.height}
+                         backgroundColor="rgba(0,0,0,0)"
+                         enableZoomInteraction={false}
+                         enablePanInteraction={false}
+                         dagMode="radialout"
+                         dagLevelDistance={dimensions.width < 600 ? 180 : 300}
+                         warmupTicks={150}
+                         cooldownTicks={0}
+                         onEngineStop={() => {
+                              if (fgRef.current) {
+                                   fgRef.current.zoomToFit(1200, 40);
+                              }
+                         }}
+                         linkCanvasObject={(link: any, ctx) => {
+                              const start = link.source;
+                              const end = link.target;
+                              const isDimmed =
+                                   hoverNode &&
+                                   start.id !== hoverNode &&
+                                   end.id !== hoverNode;
+
+                              ctx.beginPath();
+                              ctx.moveTo(start.x, start.y);
+                              ctx.lineTo(end.x, end.y);
+                              ctx.strokeStyle = isDimmed
+                                   ? theme.dimmed
+                                   : theme.link;
+                              ctx.lineWidth = isDimmed ? 1 : 2;
+                              ctx.stroke();
+
+                              if (!isDimmed) {
+                                   const midX = start.x + (end.x - start.x) / 2;
+                                   const midY = start.y + (end.y - start.y) / 2;
+                                   const timeText = `+${link.delayHours}h`;
+
+                                   drawPill(
+                                        ctx,
+                                        timeText,
+                                        midX,
+                                        midY,
+                                        theme.link,
+                                        false,
+                                   );
+                              }
+                         }}
+                         linkDirectionalParticles={
+                              hoverNode
+                                   ? (link: any) =>
+                                          link.source.id === hoverNode ||
+                                          link.target.id === hoverNode
+                                               ? 4
+                                               : 0
+                                   : 3
+                         }
+                         linkDirectionalParticleWidth={
+                              dimensions.width < 600 ? 3 : 4
+                         }
+                         linkDirectionalParticleSpeed={0.005}
+                         linkDirectionalParticleColor={() =>
+                              isThreat ? "#f87171" : "#38bdf8"
+                         }
+                         nodeCanvasObject={(node: any, ctx) => {
+                              const nodeX = node.x ?? 0;
+                              const nodeY = node.y ?? 0;
+                              const isSource = node.type === "source";
+
+                              // Noduri un pic mai mici pe telefoane
+                              const scale = dimensions.width < 600 ? 0.75 : 1;
+                              const radius = (isSource ? 14 : 8) * scale;
+
+                              const isHovered = node.id === hoverNode;
+                              const isDimmed =
+                                   hoverNode &&
+                                   !isHovered &&
+                                   !(hoverNode !== "source" && isSource);
+
+                              const baseColor = isSource
+                                   ? theme.source
+                                   : theme.domain;
+                              const renderColor = isDimmed
+                                   ? "#334155"
+                                   : baseColor;
+
+                              if ((isSource || isHovered) && !isDimmed) {
+                                   ctx.beginPath();
+                                   ctx.arc(
+                                        nodeX,
+                                        nodeY,
+                                        radius * 2.5,
+                                        0,
+                                        2 * Math.PI,
+                                   );
+                                   ctx.fillStyle = isThreat
+                                        ? "rgba(239, 68, 68, 0.25)"
+                                        : "rgba(6, 182, 212, 0.25)";
+                                   ctx.fill();
+                              }
+
+                              ctx.beginPath();
+                              ctx.arc(nodeX, nodeY, radius, 0, 2 * Math.PI);
+                              ctx.fillStyle = renderColor;
+                              ctx.fill();
+
+                              if (isSource) {
+                                   ctx.strokeStyle = "#ffffff";
+                                   ctx.lineWidth = 2.5 * scale;
+                                   ctx.stroke();
+                              }
+
+                              if (!isDimmed) {
+                                   const labelYOffset =
+                                        nodeY + radius + 18 * scale;
+                                   drawPill(
+                                        ctx,
+                                        node.name,
+                                        nodeX,
+                                        labelYOffset,
+                                        renderColor,
+                                        isSource,
+                                   );
+                              }
+                         }}
+                         onNodeHover={(node: any) => {
+                              if (containerRef.current) {
+                                   containerRef.current.style.cursor =
+                                        node && node.link
+                                             ? "pointer"
+                                             : "crosshair";
+                              }
+                              setHoverNode(node ? node.id : null);
+                         }}
+                         onNodeClick={(node: any) => {
+                              if (node.link && node.link !== "#") {
+                                   window.open(
+                                        node.link,
+                                        "_blank",
+                                        "noopener,noreferrer",
+                                   );
+                              }
+                         }}
+                    />
+               </div>
+
+               {/* Legenda adaptată pe mai multe rânduri la ecrane înguste */}
+               <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:right-4 sm:left-auto z-10 pointer-events-none flex justify-center sm:justify-end">
+                    <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700 rounded-lg p-2 sm:p-3 flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 shadow-xl max-w-full">
+                         <div className="flex items-center gap-1.5 sm:gap-2">
+                              <div
+                                   className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${isThreat ? "bg-red-500" : "bg-cyan-500"}`}
+                              />
+                              <span className="text-[9px] sm:text-[10px] text-slate-200 font-mono uppercase tracking-wider">
+                                   Sursă
+                              </span>
+                         </div>
+                         <div className="flex items-center gap-1.5 sm:gap-2">
+                              <div
+                                   className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${isThreat ? "bg-red-400" : "bg-sky-400"}`}
+                              />
+                              <span className="text-[9px] sm:text-[10px] text-slate-200 font-mono uppercase tracking-wider">
+                                   Preluări
+                              </span>
+                         </div>
+                         <div className="flex items-center gap-1.5 sm:gap-2 sm:ml-1">
+                              <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
+                              <span className="text-[9px] sm:text-[10px] text-slate-300 font-mono uppercase tracking-wider">
+                                   Timp propagare
+                              </span>
+                         </div>
+                    </div>
+               </div>
           </div>
-        </div>
-      </div>
-    </div>
-  );
+     );
 }

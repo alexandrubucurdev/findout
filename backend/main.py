@@ -10,7 +10,7 @@ import asyncio
 # Importurile modulelor interne
 from scraper_engine import extrage_date_articol, cauta_istoric_raspandire_avansat, identifica_pacient_zero
 from ai_analyzer import analizeaza_articol, analizeaza_consens_si_rezumat
-from db_writer import save_to_firestore, verifica_daca_exista
+from db_writer import save_to_firestore, verifica_daca_exista, get_recent_scans
 from chatbox import start_chat_session, ask_question
 from fact_checker import verifica_stire_oficial
 
@@ -105,6 +105,14 @@ async def scan_pipeline(request: ScanRequest):
     await asyncio.to_thread(save_to_firestore, pachet_final)
 
     return pachet_final
+
+# ===============================================================
+# ENDPOINT PENTRU RECENT THREATS
+# ===============================================================
+@app.get("/recent")
+async def get_recent():
+    rezultate = await asyncio.to_thread(get_recent_scans, 3)
+    return {"recent_scans": rezultate}
 
 # ===============================================================
 # NOU: Arhitectura WebSocket pentru Chat (Stateful & Rapid)

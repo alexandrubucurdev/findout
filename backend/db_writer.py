@@ -100,3 +100,17 @@ def verifica_daca_exista(url):
         print(f"Eroare la citirea din Firestore: {e}")
         
     return None
+
+def get_recent_scans(limit=3):
+    """
+    Returnează cele mai recente scanări pentru Landing Page.
+    """
+    if not db:
+        return []
+        
+    try:
+        docs = db.collection('scans').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(limit).stream()
+        return [doc.to_dict() for doc in docs]
+    except Exception as e:
+        print(f"Eroare la citirea recentelor din Firestore: {e}")
+        return []
