@@ -1,0 +1,261 @@
+:root {
+     --slate-950: #020617;
+     --slate-900: #0f172a;
+     --slate-800: #1e293b;
+     --cyan: #22d3ee;
+     --orange: #fb923c;
+     --red: #f87171;
+     --white: #ffffff;
+     --text-dim: #94a3b8;
+}
+
+body {
+     width: 420px;
+     margin: 0;
+     padding: 0;
+     font-family: "Inter", sans-serif;
+     background: var(--slate-950);
+     color: var(--white); /* Text implicit alb */
+     overflow: hidden;
+}
+
+.sitrep-container {
+     display: flex;
+     flex-direction: column;
+     min-height: 460px;
+     border: 1px solid var(--slate-800);
+}
+
+/* GRADIENTE TACTICE */
+.theme-default {
+     background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+}
+.theme-fals {
+     background: linear-gradient(135deg, #450a0a 0%, #0f172a 100%);
+     border-color: #b91c1c;
+}
+.theme-suspect {
+     background: linear-gradient(135deg, #7c2d12 0%, #0f172a 100%);
+     border-color: #9a3412;
+}
+.theme-adevarat {
+     background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+     border-color: #059669;
+}
+
+.tactical-header {
+     padding: 14px 20px;
+     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.mono-title {
+     font-family: "Space Mono", monospace;
+     font-size: 15px;
+     letter-spacing: 1.5px;
+     margin: 0;
+     color: var(--white);
+}
+.mono-subtitle {
+     font-family: "Space Mono", monospace;
+     font-size: 10px;
+     color: var(--text-dim);
+     margin: 4px 0 0 28px;
+}
+
+.tactical-content {
+     padding: 16px;
+     display: flex;
+     flex-direction: column;
+     gap: 12px;
+}
+
+.card-dark {
+     background: rgba(2, 6, 23, 0.7);
+     border: 1px solid rgba(255, 255, 255, 0.1);
+     border-radius: 6px;
+     padding: 12px;
+}
+.border-strong {
+     border-color: var(--slate-700);
+}
+
+.flex-row {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+}
+.flex-justify-row {
+     display: flex;
+     justify-content: space-between;
+     align-items: stretch;
+}
+
+.mono-label {
+     font-family: "Space Mono", monospace;
+     font-size: 9px;
+     text-transform: uppercase;
+     letter-spacing: 1px;
+     display: block;
+     margin-bottom: 6px;
+}
+
+/* Threat Meter */
+.threat-container {
+     display: flex;
+     align-items: center;
+     gap: 10px;
+     flex: 1;
+}
+.threat-fill {
+     flex: 1;
+     height: 5px;
+     background: #000;
+     position: relative;
+     border-radius: 3px;
+     overflow: hidden;
+     border: 1px solid var(--slate-800);
+}
+.threat-fill::after {
+     content: "";
+     position: absolute;
+     left: 0;
+     top: 0;
+     height: 100%;
+     width: var(--p, 0%);
+     background: var(--cyan);
+     box-shadow: 0 0 10px var(--cyan);
+     transition: width 1s;
+}
+.threat-text {
+     font-family: "Space Mono", monospace;
+     font-size: 13px;
+     font-weight: bold;
+     color: var(--cyan);
+     text-shadow: 0 0 5px rgba(34, 211, 238, 0.5);
+}
+
+/* Badges */
+.badge-tactical {
+     padding: 8px 14px;
+     border: 1px solid;
+     border-radius: 4px;
+     font-family: "Space Mono", monospace;
+     font-size: 11px;
+     font-weight: 800;
+     display: flex;
+     align-items: center;
+     color: var(--white);
+}
+.badge-default {
+     background: #1e293b;
+     border-color: #334155;
+}
+.badge-fals {
+     background: #7f1d1d;
+     border-color: #f87171;
+}
+.badge-suspect {
+     background: #7c2d12;
+     border-color: #fb923c;
+}
+.badge-adevarat {
+     background: #064e3b;
+     border-color: #34d399;
+}
+
+.segment-body {
+     font-size: 11.5px;
+     line-height: 1.6;
+     color: var(--white);
+     margin: 0;
+}
+.tactical-divider {
+     height: 1px;
+     background: rgba(255, 255, 255, 0.1);
+     margin: 10px 0;
+}
+.micro-text {
+     font-size: 10px;
+     line-height: 1.4;
+     color: var(--white);
+     margin: 0;
+}
+
+.tags-row {
+     display: flex;
+     flex-wrap: wrap;
+     gap: 6px;
+}
+.tag-red {
+     font-size: 9px;
+     font-family: "Space Mono", monospace;
+     padding: 2px 6px;
+     background: #450a0a;
+     border: 1px solid var(--red);
+     color: var(--white);
+     border-radius: 3px;
+     font-weight: bold;
+}
+
+.btn-glow-cyan {
+     background: var(--cyan);
+     color: #000;
+     border: none;
+     padding: 12px;
+     font-family: "Space Mono", monospace;
+     font-size: 11px;
+     font-weight: 800;
+     cursor: pointer;
+     transition: 0.2s;
+     border-radius: 4px;
+}
+.btn-glow-cyan:hover {
+     background: var(--color-purple-600);
+     box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+}
+
+.text-white {
+     color: var(--white) !important;
+}
+.text-cyan {
+     color: var(--cyan) !important;
+}
+.text-orange {
+     color: var(--orange) !important;
+}
+.text-red {
+     color: var(--red) !important;
+}
+
+.loader {
+     position: fixed;
+     inset: 0;
+     background: var(--slate-950);
+     z-index: 100;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+}
+.tactical-spinner {
+     width: 40px;
+     height: 40px;
+     border: 3px solid var(--slate-800);
+     border-top: 3px solid var(--cyan);
+     border-radius: 50%;
+     animation: spin 1s linear infinite;
+}
+@keyframes spin {
+     to {
+          transform: rotate(360deg);
+     }
+}
+.glow-text {
+     color: var(--cyan);
+     font-size: 10px;
+     margin-top: 15px;
+     letter-spacing: 2px;
+     font-weight: bold;
+}
+.hidden {
+     display: none !important;
+}

@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+     <head>
+          <meta charset="UTF-8" />
+          <link rel="stylesheet" href="style.css" />
+          <link
+               href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+               rel="stylesheet"
+          />
+          <script src="lucide.min.js"></script>
+     </head>
+     <body>
+          <div id="main-panel" class="sitrep-container theme-default">
+               <header class="tactical-header">
+                    <div class="flex-row">
+                         <i data-lucide="file-text" class="text-cyan"></i>
+                         <h3 class="mono-title text-white">
+                              PATTERN DETECTION
+                         </h3>
+                    </div>
+                    <p class="mono-subtitle">SITUATION REPORT</p>
+               </header>
+
+               <main class="tactical-content">
+                    <div class="flex-justify-row gap-4">
+                         <div class="card-dark flex-1">
+                              <span class="mono-label text-slate-300"
+                                   ><i data-lucide="target" size="10"></i>
+                                   THREAT SCORE</span
+                              >
+                              <div class="threat-container">
+                                   <div
+                                        id="toxicity-fill"
+                                        class="threat-fill"
+                                   ></div>
+                                   <span id="toxicity-value" class="threat-text"
+                                        >0%</span
+                                   >
+                              </div>
+                         </div>
+                         <div
+                              id="verdict-badge"
+                              class="badge-tactical badge-default"
+                         >
+                              UNKNOWN
+                         </div>
+                    </div>
+
+                    <div class="card-dark border-strong">
+                         <div class="info-segment">
+                              <div class="segment-header">
+                                   <i data-lucide="globe" class="text-cyan"></i>
+                                   <span class="mono-label text-white"
+                                        >Media Consensus:</span
+                                   >
+                              </div>
+                              <p
+                                   id="consensus-text"
+                                   class="segment-body text-white"
+                              >
+                                   Initializing...
+                              </p>
+                         </div>
+
+                         <div class="tactical-divider"></div>
+
+                         <div class="info-segment">
+                              <div class="segment-header">
+                                   <i
+                                        data-lucide="activity"
+                                        class="text-orange"
+                                   ></i>
+                                   <span class="mono-label text-white"
+                                        >Sitrep (Spread):</span
+                                   >
+                              </div>
+                              <p
+                                   id="summary-text"
+                                   class="segment-body text-white"
+                              >
+                                   Analyzing...
+                              </p>
+                         </div>
+                    </div>
+
+                    <div class="flex-justify-row gap-3">
+                         <div class="card-dark flex-1">
+                              <span class="mono-label text-red"
+                                   ><i data-lucide="alert-circle" size="10"></i>
+                                   PATTERNS</span
+                              >
+                              <div id="emotions-tags" class="tags-row"></div>
+                         </div>
+                         <div class="card-dark flex-1">
+                              <span class="mono-label text-slate-200"
+                                   >TECHNIQUES</span
+                              >
+                              <p
+                                   id="techniques-text"
+                                   class="micro-text text-white"
+                              >
+                                   Scanning...
+                              </p>
+                         </div>
+                    </div>
+
+                    <button
+                         id="btn-full-report"
+                         class="btn-glow-cyan text-white"
+                    >
+                         VIEW FULL NETWORK GRAPH &rarr;
+                    </button>
+               </main>
+          </div>
+
+          <div id="loading-overlay" class="loader">
+               <div class="tactical-spinner"></div>
+               <p class="mono-text glow-text text-white">
+                    INITIATING TACTICAL SCAN...
+               </p>
+          </div>
+
+          <script src="popup.js"></script>
+     </body>
+</html>

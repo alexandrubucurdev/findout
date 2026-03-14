@@ -24,7 +24,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",                  # Dezvoltare Next.js
         "https://findout-gdg.web.app",            # Domeniul tău (Firebase Hosting)
-        "chrome-extension://ID_EXTENSIE_AICI",    # Permite cereri de la extensia Chrome
+        "chrome-extension://ID_EXTENSIE",    # Permite cereri de la extensia Chrome
     ],
     allow_credentials=True,
     allow_methods=["*"],                          # Permite GET, POST, OPTIONS etc.
