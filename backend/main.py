@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI , HTTPException
+from typing import List, Optional
+from chatbox import start_chat_session, ask_question
 from pydantic import BaseModel
 import json
 import os
@@ -13,6 +15,11 @@ app = FastAPI(title="FindOut - Data Engine")
 
 class ScanRequest(BaseModel):
     url: str
+
+class ChatRequest(BaseModel):
+    url: str
+    question: str
+    history: Optional[List] = []
 
 @app.post("/scan")
 async def scan_pipeline(request: ScanRequest):
@@ -84,3 +91,30 @@ async def scan_pipeline(request: ScanRequest):
     save_to_firestore(pachet_final)
 
     return pachet_final
+
+
+@app.post("/chat")
+async def chat_with_article(request: ChatRequest):
+    """Endpoint-ul de chatbot care folosește logica din chatbot.py"""
+    
+
+    formatted_history = []
+    if request.history:
+        for msg in request.history:
+            formatted_history.append({
+                "role": msg.get("role", "user"),
+                "parts": [msg.get("parts", "")]
+                })
+    
+    chat_session, system_prompt = start_chat_session(request.url, istoric=formatted_history)
+
+    if chat_session is None:
+        raise HTTPException(status_code=404, detail=system_prompt) 
+
+    raspuns = ask_question(chat_session, system_prompt, request.question)
+
+    return {
+        "answer": raspuns,
+        "url": request.url
+    }
+
