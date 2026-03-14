@@ -1,7 +1,18 @@
+# --- Core Backend ---
 fastapi
 uvicorn
+
+# --- Scraping & Extracție Date ---
 newspaper3k
 lxml_html_clean
 feedparser
 requests
 beautifulsoup4
+trafilatura
+
+# --- AI (Google Gemini) ---
+google-generativeai
+
+# --- Bază de Date & Securitate ---
+firebase-admin
+python-dotenv
