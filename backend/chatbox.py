@@ -11,7 +11,7 @@ if not GOOGLE_API_KEY:
     raise ValueError("Nu am găsit cheia GEMINI_API_KEY în fișierul .env!")
 genai.configure(api_key=GOOGLE_API_KEY)
 
-model = genai.GenerativeModel('gemini-3-flash-preview')
+model = genai.GenerativeModel('gemini-3.1-flash-lite-preview')
 
 
 def start_chat_session(url_articol, istoric = []):
