@@ -15,7 +15,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-950 text-white flex flex-col relative">
       {/* Background Image with Opacity */}
       <div
-        className="fixed inset-0 opacity-25 pointer-events-none"
+        className="fixed inset-0 opacity-20 pointer-events-none"
         style={{
           backgroundImage: "url('/assets/cyber-grid-bg.png')",
           backgroundSize: "cover",
@@ -32,14 +32,20 @@ export default function Dashboard() {
             <div className="flex items-center gap-6">
               <button
                 onClick={() => router.push("/")}
-                className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                className="text-slate-400 hover:text-cyan-400 transition-colors"
               >
-                <ArrowLeft className="w-5 h-5" />
-                <span className="font-mono text-sm">BACK TO SCAN</span>
+                <ArrowLeft className="w-6 h-6" strokeWidth={3} />
               </button>
               <div className="w-px h-6 bg-slate-700"></div>
               <div className="flex items-center gap-3">
-                <Activity className="w-6 h-6 text-cyan-400" />
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full bg-cyan-400/60 blur-3xl -z-10 animate-pulse" />
+                  <img
+                    src="/assets/logo-bun-1.png"
+                    alt="Find Out"
+                    className="h-18 w-auto relative"
+                  />
+                </div>
                 <h1
                   className="text-xl tracking-widest"
                   style={{
@@ -63,37 +69,39 @@ export default function Dashboard() {
         {/* Main Dashboard */}
         <main className="flex-1 px-8 py-6 overflow-auto">
           <div className="max-w-[1800px] mx-auto space-y-6">
-            {/* Toxicity Meter - Full Width */}
-            <ToxicityMeter />
+            {/* Toxicity Meter - Centered, 20% smaller */}
+            <div className="max-w-[80%] mx-auto">
+              <ToxicityMeter />
+            </div>
 
-            {/* Three-Panel Layout */}
-            <div className="grid grid-cols-12 gap-6 min-h-[600px]">
+            {/* Two-Panel Layout - SITREP and Network Graph */}
+            <div className="grid grid-cols-2 gap-6 min-h-[600px] mx-auto max-w-[80%]">
               {/* Left Panel - SITREP */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="col-span-3"
               >
                 <SitrepPanel />
               </motion.div>
 
-              {/* Center Panel - Network Graph */}
+              {/* Right Panel - Network Graph */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="col-span-6"
               >
                 <NetworkGraph />
               </motion.div>
+            </div>
 
-              {/* Right Panel - Chat */}
+            {/* Citizen's Shield - Centered below */}
+            <div className="flex justify-center">
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="col-span-3"
+                className="w-full max-w-[80%]"
               >
                 <ChatPanel />
               </motion.div>

@@ -17,10 +17,10 @@ export default function LoadingState() {
   }, [router]);
 
   const scanSteps = [
-    { icon: Lock, label: "Verificare surse..." },
-    { icon: Radar, label: "Scanare cross-domain..." },
-    { icon: Cpu, label: "Analiză AI în curs..." },
-    { icon: Shield, label: "Detectare propagandă..." },
+    { icon: Lock, label: "Verifying sources..." },
+    { icon: Radar, label: "Cross-domain scanning..." },
+    { icon: Cpu, label: "AI analysis in progress..." },
+    { icon: Shield, label: "Propaganda detection..." },
   ];
 
   return (
@@ -72,7 +72,7 @@ export default function LoadingState() {
           animate={{ opacity: 1 }}
           className="text-3xl font-mono tracking-wider mb-3 text-white"
         >
-          Se rulează analiza AI...
+          Running AI analysis...
         </motion.h1>
 
         {/* Loading Steps */}
