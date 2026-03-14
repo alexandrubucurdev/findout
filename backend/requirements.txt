@@ -1,6 +1,8 @@
 # --- Core Backend ---
 fastapi
-uvicorn
+uvicorn[standard]
+websockets
+pydantic
 
 # --- Scraping & Extracție Date ---
 newspaper3k
