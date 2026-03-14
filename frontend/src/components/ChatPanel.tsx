@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MessageSquare, Send, Bot, User } from "lucide-react";
-import { useChat } from "../../../../hooks/useChat";
+import { useChat } from "../../hooks/useChat";
 
 function FormattedText({ text, animate }: { text: string; animate?: boolean }) {
      const [displayedText, setDisplayedText] = useState(animate ? "" : text);

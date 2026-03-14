@@ -1,5 +1,5 @@
-import DashboardPage from "@/src/features/cyber-defense/pages/Dashboard";
+import DashboardPage from "@/app/pages/Dashboard";
 
 export default function DashboardRoutePage() {
-  return <DashboardPage />;
+     return <DashboardPage />;
 }

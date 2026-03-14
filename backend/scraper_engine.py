@@ -3,20 +3,71 @@ import trafilatura
 import feedparser
 import urllib.parse
 import urllib.request
-import requests # <-- NOU: Necesar pentru API-ul GDELT
+import requests 
 from email.utils import parsedate_to_datetime
 from datetime import datetime, timezone
+from bs4 import BeautifulSoup  # <-- NOU: Necesităm bs4 pentru validarea structurii paginii
+
+def is_valid_news_article(html_content: str) -> bool:
+    """
+    Verifică dacă un HTML dat pare să fie un articol de știri.
+    Returnează True dacă e valid, False dacă este o pagină principală, de contact, etc.
+    """
+    if not html_content:
+        return False
+        
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # 1. Verificăm meta tag-urile Open Graph (Standardul de aur pentru știri)
+    og_type = soup.find('meta', property='og:type')
+    if og_type and 'article' in str(og_type.get('content', '')).lower():
+        return True
+
+    # 2. Verificăm dacă există tag-ul semantic <article> (folosit de 90% din ziare)
+    if soup.find('article'):
+        return True
+
+    # 3. Verificăm JSON-LD (Schema.org) - multe site-uri folosesc asta pentru SEO/Google News
+    scripts = soup.find_all('script', type='application/ld+json')
+    for script in scripts:
+        if script.string and ('"NewsArticle"' in script.string or '"Article"' in script.string):
+            return True
+
+    # 4. Fallback: Verificăm cantitatea de text din paragrafe
+    # O știre reală ar trebui să aibă măcar ~150 de cuvinte text brut
+    paragraphs = soup.find_all('p')
+    text_content = " ".join([p.get_text(strip=True) for p in paragraphs])
+    word_count = len(text_content.split())
+    
+    if word_count > 150:
+        return True
+
+    # Dacă nu a trecut de niciun test, aproape sigur nu e un articol
+    return False
+
 
 def extrage_date_articol(url):
-    """TASK 1: Extragerea inteligentă a textului folosind Trafilatura"""
+    """TASK 1: Extragerea inteligentă a textului folosind Trafilatura și validarea paginii"""
     try:
+        # Descărcăm HTML-ul brut prima dată pentru a-l verifica
+        downloaded = trafilatura.fetch_url(url)
+        
+        if not downloaded:
+            print("Nu s-a putut descărca HTML-ul paginii.")
+            return None
+            
+        # VERIFICARE: Este cu adevărat o știre?
+        if not is_valid_news_article(downloaded):
+            print("Pagina nu a trecut testul de validare ca articol de știri.")
+            return {"error": "not_an_article"}
+
+        # Dacă e valid, continuăm extracția
         article = Article(url)
         article.download()
         article.parse() 
         titlu = article.title
         imagine = article.top_image
 
-        downloaded = trafilatura.fetch_url(url)
         text_curat = trafilatura.extract(downloaded, include_comments=False, include_tables=False)
         
         if not text_curat or len(text_curat) < 100:
@@ -59,13 +110,11 @@ def cauta_google_news(query, limba, tara):
 
 def cauta_gdelt(query):
     """Caută în GDELT 2.0 (Baza de date globală pentru Pacientul Zero)"""
-    # Folosim exact structura din Planul Tehnic Detaliat
     query_codificat = urllib.parse.quote(query)
     url = f'https://api.gdeltproject.org/api/v2/doc/doc?query="{query_codificat}"&mode=artlist&format=json&timespan=7d'
     
     lista_articole = []
     try:
-        # Folosim timeout pentru ca I/O sa nu tina sistemul ocupat excesiv
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
             data = response.json()
@@ -76,7 +125,7 @@ def cauta_gdelt(query):
                     "titlu": entry.get("title", "Necunoscut"),
                     "link": entry.get("url", ""),
                     "sursa": entry.get("domain", "Necunoscut"),
-                    "data_publicarii": entry.get("seendate", ""), # GDELT are format ISO ex: 20260314T153000Z
+                    "data_publicarii": entry.get("seendate", ""), # Format ISO ex: 20260314T153000Z
                     "domain": entry.get("domain", ""),
                     "sursa_scanare": "GDELT"
                 })
@@ -88,11 +137,9 @@ def cauta_gdelt(query):
 def cauta_istoric_raspandire_avansat(query_ro, query_en):
     """TASK 2: Combină Google News (RO/EN) + GDELT Global și elimină duplicatele"""
     
-    # Acum că le apelăm simultan din `main.py` (via asyncio.to_thread), 
-    # intern aici codul poate rula secvențial, dar per total sistemul e rapid.
     articole_ro = cauta_google_news(query_ro, limba="ro", tara="RO")
     articole_en = cauta_google_news(query_en, limba="en", tara="US")
-    articole_gdelt = cauta_gdelt(query_en) # GDELT funcționează optim pe cuvinte cheie în engleză/nume proprii
+    articole_gdelt = cauta_gdelt(query_en)
     
     toate_articolele = articole_ro + articole_en + articole_gdelt
     

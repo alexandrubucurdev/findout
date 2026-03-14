@@ -44,18 +44,30 @@ async def scan_pipeline(request: ScanRequest):
     """
     Fluxul principal de scanare: Verifică Cache -> Scrape -> AI -> Căutare Globală -> Salvare.
     """
-    # 0. Verificăm în Cache (Firebase) async pentru a scuti timp și bani [cite: 14, 24]
+    # 0. Verificăm în Cache (Firebase) async pentru a scuti timp și bani
     date_existente = await asyncio.to_thread(verifica_daca_exista, request.url)
     if date_existente:
         print(f"Cache HIT pentru {request.url}! Returnăm datele salvate.")
         return date_existente
 
-    # 1. Extragerea (Task 1) async [cite: 30, 31, 32]
+    # 1. Extragerea (Task 1) async
     date_brute = await asyncio.to_thread(extrage_date_articol, request.url)
-    if not date_brute or not date_brute['text']:
-        return {"status": "eroare", "mesaj": "Link inaccesibil sau fără conținut text."}
+    
+    # VERIFICARE NOUĂ: Ne asigurăm că URL-ul este o știre validă
+    if isinstance(date_brute, dict) and date_brute.get("error") == "not_an_article":
+        raise HTTPException(
+            status_code=400, 
+            detail="Acest link nu pare să conțină un articol de știri valid."
+        )
 
-    # 2. Comunicarea cu Interogatorul (AI) async [cite: 33, 34, 35]
+    # Verificare dacă extragerea a eșuat complet din alte motive
+    if not date_brute or not date_brute.get('text'):
+        raise HTTPException(
+            status_code=400, 
+            detail="Link inaccesibil sau fără conținut text."
+        )
+
+    # 2. Comunicarea cu Interogatorul (AI) async
     verdict_ai = await asyncio.to_thread(analizeaza_articol, date_brute['text'])
     
     # --- FILTRU DE SIGURANȚĂ PENTRU CUVINTE CHEIE ---
@@ -70,7 +82,7 @@ async def scan_pipeline(request: ScanRequest):
 
     cuvinte_ro, cuvinte_en = str(cuvinte_ro), str(cuvinte_en)
 
-    # 3. Căutarea Istorică (GDELT/News) și Fact-Checks rulate SIMULTAN [cite: 38, 39, 44]
+    # 3. Căutarea Istorică (GDELT/News) și Fact-Checks rulate SIMULTAN
     istoric_brut, fact_checks_oficiali = await asyncio.gather(
         asyncio.to_thread(cauta_istoric_raspandire_avansat, cuvinte_ro, cuvinte_en),
         asyncio.to_thread(verifica_stire_oficial, cuvinte_en)
@@ -81,10 +93,10 @@ async def scan_pipeline(request: ScanRequest):
         with open("mock_data.json", "r") as f:
             istoric_brut = json.load(f).get("articles", [])
 
-    # 4. Procesarea pentru Graf: Identificăm Pacientul Zero [cite: 47, 60]
+    # 4. Procesarea pentru Graf: Identificăm Pacientul Zero
     istoric_final = identifica_pacient_zero(istoric_brut)
 
-    # 5. Generare Rezumat AI + Consens Global [cite: 50, 51]
+    # 5. Generare Rezumat AI + Consens Global
     analiza_comparativa = await asyncio.to_thread(analizeaza_consens_si_rezumat, date_brute['text'], istoric_final)
 
     # 6. Pachetul final pentru Arhitect și Frontend
@@ -101,7 +113,7 @@ async def scan_pipeline(request: ScanRequest):
         "timestamp": str(datetime.now()) 
     }
 
-    # 7. Salvarea în Firebase async [cite: 13, 54]
+    # 7. Salvarea în Firebase async
     await asyncio.to_thread(save_to_firestore, pachet_final)
 
     return pachet_final
@@ -121,7 +133,7 @@ async def get_recent():
 async def websocket_chat(websocket: WebSocket):
     """
     Interfață de chat în timp real (sparring partner). 
-    Menține contextul articolului pe durata sesiunii. [cite: 62, 65]
+    Menține contextul articolului pe durata sesiunii.
     """
     await websocket.accept()
     
@@ -135,7 +147,7 @@ async def websocket_chat(websocket: WebSocket):
             await websocket.close()
             return
 
-        # 2. Creăm instanța de chat (inițializează contextul din DB) [cite: 66, 67]
+        # 2. Creăm instanța de chat (inițializează contextul din DB)
         chat_session, status = await asyncio.to_thread(start_chat_session, url_articol, [])
         
         if chat_session is None:
@@ -150,7 +162,7 @@ async def websocket_chat(websocket: WebSocket):
             try:
                 user_question = await websocket.receive_text()
                 
-                # Trimitem la AI pe un thread separat (blocking I/O) [cite: 70]
+                # Trimitem la AI pe un thread separat (blocking I/O)
                 raspuns = await asyncio.to_thread(ask_question, chat_session, "", user_question)
                 
                 await websocket.send_text(raspuns)

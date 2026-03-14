@@ -1,5 +1,5 @@
-import LandingPage from "@/src/features/cyber-defense/pages/LandingPage";
+import LandingPage from "@/app/pages/LandingPage";
 
 export default function Home() {
-  return <LandingPage />;
+     return <LandingPage />;
 }

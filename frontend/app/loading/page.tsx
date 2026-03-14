@@ -1,5 +1,5 @@
-import LoadingState from "@/src/features/cyber-defense/pages/LoadingState";
+import LoadingState from "@/app/pages/LoadingState";
 
 export default function LoadingPage() {
-  return <LoadingState />;
+     return <LoadingState />;
 }
