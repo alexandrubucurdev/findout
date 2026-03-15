@@ -16,7 +16,13 @@ export function useChat(articleUrl: string) {
      useEffect(() => {
           if (!articleUrl) return; // Așteptăm să avem un URL valid înainte de a ne conecta
 
-          const ws = new WebSocket("ws://localhost:8000/ws/chat");
+          // Extragem domeniul din variabila de mediu și curățăm protocolul http/https
+          const backendUrl =
+               process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+          const wsProtocol = backendUrl.startsWith("https") ? "wss" : "ws";
+          const wsHost = backendUrl.replace(/^https?:\/\//, "");
+
+          const ws = new WebSocket(`${wsProtocol}://${wsHost}/ws/chat`);
 
           ws.onopen = () => {
                // Pasul 1: Trimitem URL-ul pentru context imediat după conectare
