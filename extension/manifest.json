@@ -8,5 +8,7 @@
           "default_popup": "popup.html",
           "default_icon": "icon.png"
      },
-     "host_permissions": ["http://localhost:8000/*"]
+     "host_permissions": [
+          "https://api-backend-576250219124.europe-west4.run.app/*"
+     ]
 }
