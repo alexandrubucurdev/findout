@@ -6,11 +6,14 @@ document.addEventListener("DOMContentLoaded", async () => {
      });
 
      try {
-          const response = await fetch("http://localhost:8000/scan", {
-               method: "POST",
-               headers: { "Content-Type": "application/json" },
-               body: JSON.stringify({ url: tab.url }),
-          });
+          const response = await fetch(
+               "https://api-backend-576250219124.europe-west4.run.app/scan",
+               {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: tab.url }),
+               },
+          );
           const data = await response.json();
           renderTacticalUI(data);
      } catch (error) {
@@ -78,7 +81,8 @@ function renderTacticalUI(data) {
 
      document.getElementById("btn-full-report").onclick = () => {
           chrome.tabs.create({
-               url: `https://findout-gdg.web.app/dashboard?url=${encodeURIComponent(data.url)}`,
+               // Înlocuiește cu URL-ul primit de la Vercel (ex: https://findout-site.vercel.app)
+               url: `https://findout-gdg.vercel.app/dashboard?url=${encodeURIComponent(data.url)}`,
           });
      };
 
