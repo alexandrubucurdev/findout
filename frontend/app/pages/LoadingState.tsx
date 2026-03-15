@@ -23,7 +23,11 @@ export default function LoadingState() {
                const timeoutId = setTimeout(() => controller.abort(), 60000);
 
                try {
-                    const response = await fetch("http://localhost:8000/scan", {
+                    const apiUrl =
+                         process.env.NEXT_PUBLIC_API_URL ||
+                         "http://localhost:8000";
+
+                    const response = await fetch(`${apiUrl}/scan`, {
                          method: "POST",
                          headers: { "Content-Type": "application/json" },
                          body: JSON.stringify({ url }),
